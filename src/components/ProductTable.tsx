@@ -40,26 +40,27 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <Table>
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="font-semibold">Produto</TableHead>
-            <TableHead className="font-semibold text-center">Estoque Atual</TableHead>
-            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
+            <TableHead className="font-semibold whitespace-nowrap min-w-[150px]">Produto</TableHead>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Estoque Atual</TableHead>
+            <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 1
             </TableHead>
-            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana2" ? "bg-primary/20 text-primary" : ""}`}>
+            <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana2" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 2
             </TableHead>
-            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana3" ? "bg-primary/20 text-primary" : ""}`}>
+            <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana3" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 3
             </TableHead>
-            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana4" ? "bg-primary/20 text-primary" : ""}`}>
+            <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana4" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 4
             </TableHead>
-            <TableHead className="font-semibold text-center">Zerando em</TableHead>
-            <TableHead className="font-semibold">Status</TableHead>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Zerando em</TableHead>
+            <TableHead className="font-semibold whitespace-nowrap min-w-[200px]">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -69,7 +70,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
             
             return (
               <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
-                <TableCell className="font-medium">{product.nome}</TableCell>
+                <TableCell className="font-medium whitespace-nowrap">{product.nome}</TableCell>
                 <TableCell className="text-center font-semibold">
                   {product.estoqueAtual}
                 </TableCell>
@@ -93,13 +94,13 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                     {product.previsao.semana4}
                   </span>
                 </TableCell>
-                <TableCell className="text-center text-sm">
+                <TableCell className="text-center text-sm whitespace-nowrap">
                   {new Date(product.estoqueZerandoEm).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={alertInfo.variant} className="flex items-center gap-1 w-fit">
+                  <Badge variant={alertInfo.variant} className="flex items-center gap-1 w-fit whitespace-nowrap">
                     <AlertIcon className="h-3 w-3" />
-                    {product.alerta}
+                    <span className="text-xs sm:text-sm">{product.alerta}</span>
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -107,6 +108,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
           })}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 };

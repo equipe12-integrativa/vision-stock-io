@@ -73,20 +73,20 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-                <Package className="h-8 w-8 text-primary" />
-                Gestão Inteligente de Estoques
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground flex items-center gap-2">
+                <Package className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                <span className="leading-tight">Gestão Inteligente de Estoques</span>
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                 Dashboard de previsão e alertas automatizados
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
               <Select value={selectedWeek} onValueChange={(value) => setSelectedWeek(value as any)}>
-                <SelectTrigger className="w-[180px] bg-background">
+                <SelectTrigger className="w-full sm:w-[180px] bg-background">
                   <SelectValue placeholder="Selecione o período" />
                 </SelectTrigger>
                 <SelectContent>
@@ -102,9 +102,9 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <KPICard
             title="Taxa de Ruptura"
             value="8.5%"
@@ -129,17 +129,17 @@ const Index = () => {
         </div>
 
         {/* Chart */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <SalesChart data={chartData} />
         </div>
 
         {/* Products Table */}
         <div>
           <div className="mb-4">
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
               Top 20% Produtos (Princípio de Pareto)
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Produtos com maior impacto nas vendas e necessidade de atenção
             </p>
           </div>
