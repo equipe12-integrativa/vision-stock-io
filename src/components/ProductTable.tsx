@@ -46,10 +46,18 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
           <TableRow className="bg-muted/50">
             <TableHead className="font-semibold">Produto</TableHead>
             <TableHead className="font-semibold text-center">Estoque Atual</TableHead>
-            <TableHead className="font-semibold text-center">Semana 1</TableHead>
-            <TableHead className="font-semibold text-center">Semana 2</TableHead>
-            <TableHead className="font-semibold text-center">Semana 3</TableHead>
-            <TableHead className="font-semibold text-center">Semana 4</TableHead>
+            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
+              Semana 1
+            </TableHead>
+            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana2" ? "bg-primary/20 text-primary" : ""}`}>
+              Semana 2
+            </TableHead>
+            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana3" ? "bg-primary/20 text-primary" : ""}`}>
+              Semana 3
+            </TableHead>
+            <TableHead className={`font-semibold text-center transition-colors ${selectedWeek === "semana4" ? "bg-primary/20 text-primary" : ""}`}>
+              Semana 4
+            </TableHead>
             <TableHead className="font-semibold text-center">Zerando em</TableHead>
             <TableHead className="font-semibold">Status</TableHead>
           </TableRow>
@@ -65,22 +73,22 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                 <TableCell className="text-center font-semibold">
                   {product.estoqueAtual}
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className={`text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana1" ? "font-bold text-primary" : ""}>
                     {product.previsao.semana1}
                   </span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className={`text-center transition-colors ${selectedWeek === "semana2" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana2" ? "font-bold text-primary" : ""}>
                     {product.previsao.semana2}
                   </span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className={`text-center transition-colors ${selectedWeek === "semana3" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana3" ? "font-bold text-primary" : ""}>
                     {product.previsao.semana3}
                   </span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className={`text-center transition-colors ${selectedWeek === "semana4" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana4" ? "font-bold text-primary" : ""}>
                     {product.previsao.semana4}
                   </span>
