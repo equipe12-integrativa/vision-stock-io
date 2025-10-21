@@ -68,6 +68,15 @@ const chartData = [
 
 const Index = () => {
   const [selectedWeek, setSelectedWeek] = useState<"semana1" | "semana2" | "semana3" | "semana4">("semana1");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+
+  const filteredProducts = produtosMock.filter(product => {
+    if (statusFilter === "todos") return true;
+    if (statusFilter === "ruptura") return product.alerta.includes("Ruptura iminente");
+    if (statusFilter === "critico") return product.alerta.includes("crítico");
+    if (statusFilter === "estavel") return product.alerta.includes("estável");
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,15 +144,28 @@ const Index = () => {
 
         {/* Products Table */}
         <div>
-          <div className="mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-              Top 20% Produtos (Princípio de Pareto)
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              Produtos com maior impacto nas vendas e necessidade de atenção
-            </p>
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
+                Top 20% Produtos (Princípio de Pareto)
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Produtos com maior impacto nas vendas e necessidade de atenção
+              </p>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-background">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os status</SelectItem>
+                <SelectItem value="ruptura">⚠️ Ruptura iminente</SelectItem>
+                <SelectItem value="critico">🟡 Estoque crítico</SelectItem>
+                <SelectItem value="estavel">✅ Estoque estável</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <ProductTable products={produtosMock} selectedWeek={selectedWeek} />
+          <ProductTable products={filteredProducts} selectedWeek={selectedWeek} />
         </div>
       </main>
     </div>
