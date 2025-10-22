@@ -411,13 +411,6 @@ const Alertas = () => {
         </p>
        </div>
       </div>
-      <Button
-       onClick={() => setIsSearchModalOpen(true)}
-       className="bg-blue-600 hover:bg-blue-700"
-      >
-       <Search className="h-4 w-4 mr-2" />
-       Busca Avançada
-      </Button>
      </div>
     </div>
    </header>
