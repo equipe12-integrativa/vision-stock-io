@@ -346,7 +346,7 @@ const produtosMock: Product[] = [
 // --- Lógica para calcular o novo chartData ---
 const calculateChartData = (products: Product[]) => {
   const weeks = ["semana1", "semana2", "semana3", "semana4"] as const;
-  
+
   // 1. Calcular a soma das previsões de consumo para cada semana (Vendas Simuladas)
   const salesByWeek: { [key: string]: number } = weeks.reduce((acc, week) => {
     acc[week] = products.reduce((sum, product) => sum + product.previsao[week], 0);
@@ -360,35 +360,56 @@ const calculateChartData = (products: Product[]) => {
   const newChartData = weeks.map((week, index) => {
     // Vendas/Consumo Simulados na semana atual
     const sales = salesByWeek[week];
-    
+
     // O Estoque para a semana 'n' é o estoque inicial
     // menos a soma dos consumos das semanas '1' a 'n-1'
     let stockAtStartOfWeek = totalStock;
     for (let i = 0; i < index; i++) {
-        const prevWeek = weeks[i];
-        stockAtStartOfWeek -= salesByWeek[prevWeek];
+      const prevWeek = weeks[i];
+      stockAtStartOfWeek -= salesByWeek[prevWeek];
     }
-    
+
     // O estoque que vamos plotar é o estoque no fim da semana (Estoque Início - Vendas)
     // Para simplificar a visualização, vamos usar o valor do estoque no *início* da semana.
     // O valor do estoque no gráfico geralmente representa o estoque disponível no início do período.
-    
+
     return {
       semana: `Semana ${index + 1}`,
       vendas: Math.round(sales), // Usamos a previsão como venda
       estoque: Math.round(stockAtStartOfWeek), // Estoque no início da semana
     };
   });
-  
+
   return newChartData;
 };
 
 const chartData = calculateChartData(produtosMock);
 // --- Fim da lógica para calcular o novo chartData ---
 
+const calculateChartDataByProduct = (product: Product) => {
+  const weeks = ["semana1", "semana2", "semana3", "semana4"] as const;
+  let stock = product.estoqueAtual;
+
+  return weeks.map((week, index) => {
+    const vendas = product.previsao[week];
+    const dataPoint = {
+      semana: `Semana ${index + 1}`,
+      vendas,
+      estoque: stock,
+    };
+    stock -= vendas; // diminui o estoque após a semana
+    return dataPoint;
+  });
+};
+// --- Fim funções chartData ---
+
 const Index = () => {
   const [selectedWeek, setSelectedWeek] = useState<"semana1" | "semana2" | "semana3" | "semana4">("semana1");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [selectedProductId, setSelectedProductId] = useState<string>(produtosMock[0].id.toString());
+
+  // Converter string para number apenas quando for buscar o produto
+  const selectedProduct = produtosMock.find(p => p.id === Number(selectedProductId))!;
 
   const filteredProducts = produtosMock.filter(product => {
     if (statusFilter === "todos") return true;
@@ -397,6 +418,8 @@ const Index = () => {
     if (statusFilter === "estavel") return product.alerta.includes("estável");
     return true;
   });
+
+  const chartData = calculateChartDataByProduct(selectedProduct);
 
   return (
     <div className="min-h-screen bg-background">
@@ -414,15 +437,17 @@ const Index = () => {
               </p>
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto">
-              <Select value={selectedWeek} onValueChange={(value) => setSelectedWeek(value as any)}>
-                <SelectTrigger className="w-full sm:w-[180px] bg-background">
-                  <SelectValue placeholder="Selecione o período" />
+              {/* Select de produto */}
+              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                <SelectTrigger className="w-full sm:w-[220px] bg-background">
+                  <SelectValue placeholder="Selecione o produto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="semana1">Semana 1</SelectItem>
-                  <SelectItem value="semana2">Semana 2</SelectItem>
-                  <SelectItem value="semana3">Semana 3</SelectItem>
-                  <SelectItem value="semana4">Semana 4</SelectItem>
+                  {produtosMock.map(product => (
+                    <SelectItem key={product.id} value={product.id.toString()}>
+                      {product.nome}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -430,31 +455,12 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          <KPICard
-            title="Taxa de Ruptura"
-            value="8.5%"
-            subtitle="↓ 2.3% vs. mês anterior"
-            icon={TrendingDown}
-            variant="danger"
-          />
-          <KPICard
-            title="Giro de Estoque"
-            value="4.2x"
-            subtitle="↑ 0.8x vs. mês anterior"
-            icon={RotateCcw}
-            variant="success"
-          />
-          <KPICard
-            title="Custo de Ruptura"
-            value="R$ 12.4k"
-            subtitle="Estimativa mensal"
-            icon={DollarSign}
-            variant="warning"
-          />
+          <KPICard title="Taxa de Ruptura" value="8.5%" subtitle="↓ 2.3% vs. mês anterior" icon={TrendingDown} variant="danger" />
+          <KPICard title="Giro de Estoque" value="4.2x" subtitle="↑ 0.8x vs. mês anterior" icon={RotateCcw} variant="success" />
+          <KPICard title="Custo de Ruptura" value="R$ 12.4k" subtitle="Estimativa mensal" icon={DollarSign} variant="warning" />
         </div>
 
         {/* Chart */}
@@ -466,12 +472,8 @@ const Index = () => {
         <div>
           <div className="mb-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                Top 20% Produtos
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Produtos com maior impacto nas vendas e necessidade de atenção
-              </p>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Top 20% Produtos</h2>
+              <p className="text-sm sm:text-base text-muted-foreground">Produtos com maior impacto nas vendas e necessidade de atenção</p>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full sm:w-[200px] bg-background">
