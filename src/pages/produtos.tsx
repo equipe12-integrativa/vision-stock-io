@@ -422,7 +422,7 @@ const Produtos = () => {
     </div>
    </header>
 
-   <div className="border-b sticky top-0 z-10 shadow-sm">
+   <div className="border-b top-0 z-10 shadow-sm">
     <div className="container mx-auto px-4 sm:px-6 py-4">
      <div className="flex flex-col lg:flex-row gap-4">
       <div className="flex-1 relative">
