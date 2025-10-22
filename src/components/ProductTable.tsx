@@ -49,7 +49,9 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
             <TableHead className="font-semibold whitespace-nowrap min-w-[150px]">Produto</TableHead>
             <TableHead className="font-semibold text-center whitespace-nowrap">Un.</TableHead>
             <TableHead className="font-semibold text-center whitespace-nowrap">Estoque Atual</TableHead>
-            <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Valor</TableHead>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Data Compra</TableHead>
+            {/* <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 1
             </TableHead>
             <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana2" ? "bg-primary/20 text-primary" : ""}`}>
@@ -61,7 +63,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
             <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana4" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 4
             </TableHead>
-            <TableHead className="font-semibold text-center whitespace-nowrap">Zerando em</TableHead>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Zerando em</TableHead> */}
             <TableHead className="font-semibold whitespace-nowrap min-w-[200px]">Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -79,7 +81,13 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                 <TableCell className="text-center font-semibold">
                   {product.estoqueAtual}
                 </TableCell>
-                <TableCell className={`text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/10" : ""}`}>
+                <TableCell className="text-center font-semibold">
+                  R$ 3,00
+                </TableCell>
+                <TableCell className="text-center font-semibold">
+                  30/03/2024
+                </TableCell>
+                {/* <TableCell className={`text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana1" ? "font-bold text-primary" : ""}>
                     {product.previsao.semana1}
                   </span>
@@ -101,7 +109,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                 </TableCell>
                 <TableCell className="text-center text-sm whitespace-nowrap">
                   {new Date(product.estoqueZerandoEm).toLocaleDateString('pt-BR')}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Badge variant={alertInfo.variant} className="flex items-center gap-1 w-fit whitespace-nowrap">
                     <AlertIcon className="h-3 w-3" />

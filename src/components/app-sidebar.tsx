@@ -66,7 +66,7 @@ const data = {
     },
     {
       title: "Alertas",
-      url: "#",
+      url: "/alertas",
       icon: Bell,
      
     },

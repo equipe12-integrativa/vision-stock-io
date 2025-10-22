@@ -7,7 +7,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Sidebar from "./pages/sidebar/sidebar";
 import { ThemeProvider } from "./components/them-provider";
-import Produtos from "./pages/produtos";
+import Produtos from "./pages/alertas";
+import Alertas from "./pages/alertas";
+import Produtoss from "./pages/produtos";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +23,8 @@ const App = () => (
           <Sidebar>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/produtos" element={<Produtos />} />
+              <Route path="/alertas" element={<Alertas />} />
+              <Route path="/produtos" element={<Produtoss />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>w

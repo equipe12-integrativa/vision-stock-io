@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ProductTable } from "@/components/ProductTable";
 
 interface Product {
  id: number;
@@ -348,7 +347,7 @@ const produtosMock: Product[] = [
  }
 ];
 
-const Produtoss = () => {
+const Alertas = () => {
  const [searchQuery, setSearchQuery] = useState("");
  const [statusFilter, setStatusFilter] = useState("todos");
  const [unidadeFilter, setUnidadeFilter] = useState("todas");
@@ -395,7 +394,6 @@ const Produtoss = () => {
   return "border-green-500";
  };
 
- const [selectedWeek, setSelectedWeek] = useState<"semana1" | "semana2" | "semana3" | "semana4">("semana1");
 
  return (
   <div className="min-h-screen bg-background text-foreground">
@@ -406,7 +404,7 @@ const Produtoss = () => {
        <Package className="h-8 w-8 text-blue-600" />
        <div>
         <h1 className="text-2xl sm:text-3xl font-bold">
-         Estoque e Produtos
+         Alertas e Previsões
         </h1>
         <p className="text-sm mt-1">
          {filteredProducts.length} produtos encontrados
@@ -477,9 +475,73 @@ const Produtoss = () => {
     </div>
    </div>
 
-   <div>
-    <ProductTable products={filteredProducts} selectedWeek={selectedWeek} />
-   </div>
+   <main className="container mx-auto px-4 sm:px-6 py-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+     {filteredProducts.map((product) => (
+      <div
+       key={product.id}
+       onClick={() => setSelectedProduct(product)}
+       className={`bg-card border rounded-lg p-5 cursor-pointer hover:shadow-md transition-all ${getAlertColor(product.alerta)}`}
+      >
+       <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+         <div className="text-xs font-semibold mb-1 text-foreground/70">
+          ID: {product.id}
+         </div>
+         <h3 className="font-semibold text-sm leading-tight text-foreground">
+          {product.nome}
+         </h3>
+        </div>
+        {getAlertIcon(product.alerta)}
+       </div>
+
+       <div className="space-y-2">
+        <div className="flex justify-between items-center">
+         <span className="text-xs text-foreground/70">Estoque Atual:</span>
+         <span className="font-bold text-foreground">
+          {product.estoqueAtual.toLocaleString('pt-BR')} {product.unidade}
+         </span>
+        </div>
+
+        <div className="flex justify-between items-center">
+         <span className="text-xs text-foreground/70">Zerando em:</span>
+         <span className="text-xs font-medium text-foreground">
+          {new Date(product.estoqueZerandoEm).toLocaleDateString('pt-BR')}
+         </span>
+        </div>
+
+        <div className="pt-2 border-t border-border">
+         <div className="text-xs font-medium mb-1 text-foreground/70">Previsão Semanal:</div>
+         <div className="grid grid-cols-4 gap-1">
+          {Object.entries(product.previsao).map(([week, value], idx) => (
+           <div key={week} className="text-center">
+            <div className="text-xs text-foreground/70">S{idx + 1}</div>
+            <div className="text-xs font-semibold text-foreground">{value}</div>
+           </div>
+          ))}
+         </div>
+        </div>
+
+        <div className="pt-2">
+         <span className="text-xs font-medium">{product.alerta}</span>
+        </div>
+       </div>
+      </div>
+     ))}
+    </div>
+
+    {filteredProducts.length === 0 && (
+     <div className="text-center py-12">
+      <Package className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold mb-2">
+       Nenhum produto encontrado
+      </h3>
+      <p>
+       Tente ajustar os filtros ou termo de busca
+      </p>
+     </div>
+    )}
+   </main>
 
    {isSearchModalOpen && (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -551,4 +613,4 @@ const Produtoss = () => {
  );
 };
 
-export default Produtoss;
+export default Alertas;
