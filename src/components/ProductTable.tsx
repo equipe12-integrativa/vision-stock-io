@@ -19,6 +19,7 @@ export interface Product {
     semana3: number;
     semana4: number;
   };
+  unidade: string;
   estoqueZerandoEm: string;
   alerta: string;
 }
@@ -46,6 +47,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead className="font-semibold whitespace-nowrap min-w-[150px]">Produto</TableHead>
+            <TableHead className="font-semibold text-center whitespace-nowrap">Un.</TableHead>
             <TableHead className="font-semibold text-center whitespace-nowrap">Estoque Atual</TableHead>
             <TableHead className={`font-semibold text-center whitespace-nowrap transition-colors ${selectedWeek === "semana1" ? "bg-primary/20 text-primary" : ""}`}>
               Semana 1
@@ -71,6 +73,9 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
             return (
               <TableRow key={product.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-medium whitespace-nowrap">{product.nome}</TableCell>
+                <TableCell className="text-center font-semibold">
+                  {product.unidade}
+                </TableCell>
                 <TableCell className="text-center font-semibold">
                   {product.estoqueAtual}
                 </TableCell>
