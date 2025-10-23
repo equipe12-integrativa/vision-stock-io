@@ -6,7 +6,7 @@ import {
   TrendingDown,
   RotateCcw,
   DollarSign,
-  Package
+  Package,
 } from "lucide-react";
 import {
   Select,
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 const produtosMock: Product[] = [
   {
@@ -343,48 +344,33 @@ const produtosMock: Product[] = [
   }
 ];
 
-// --- Lógica para calcular o novo chartData ---
 const calculateChartData = (products: Product[]) => {
   const weeks = ["semana1", "semana2", "semana3", "semana4"] as const;
 
-  // 1. Calcular a soma das previsões de consumo para cada semana (Vendas Simuladas)
   const salesByWeek: { [key: string]: number } = weeks.reduce((acc, week) => {
     acc[week] = products.reduce((sum, product) => sum + product.previsao[week], 0);
     return acc;
   }, {} as { [key: string]: number });
 
-  // 2. Calcular o estoque total inicial
   let totalStock = products.reduce((sum, product) => sum + product.estoqueAtual, 0);
 
-  // 3. Gerar os dados do gráfico
   const newChartData = weeks.map((week, index) => {
-    // Vendas/Consumo Simulados na semana atual
     const sales = salesByWeek[week];
-
-    // O Estoque para a semana 'n' é o estoque inicial
-    // menos a soma dos consumos das semanas '1' a 'n-1'
     let stockAtStartOfWeek = totalStock;
     for (let i = 0; i < index; i++) {
       const prevWeek = weeks[i];
       stockAtStartOfWeek -= salesByWeek[prevWeek];
     }
 
-    // O estoque que vamos plotar é o estoque no fim da semana (Estoque Início - Vendas)
-    // Para simplificar a visualização, vamos usar o valor do estoque no *início* da semana.
-    // O valor do estoque no gráfico geralmente representa o estoque disponível no início do período.
-
     return {
       semana: `Semana ${index + 1}`,
-      vendas: Math.round(sales), // Usamos a previsão como venda
-      estoque: Math.round(stockAtStartOfWeek), // Estoque no início da semana
+      vendas: Math.round(sales),
+      estoque: Math.round(stockAtStartOfWeek),
     };
   });
 
   return newChartData;
 };
-
-const chartData = calculateChartData(produtosMock);
-// --- Fim da lógica para calcular o novo chartData ---
 
 const calculateChartDataByProduct = (product: Product) => {
   const weeks = ["semana1", "semana2", "semana3", "semana4"] as const;
@@ -397,29 +383,35 @@ const calculateChartDataByProduct = (product: Product) => {
       vendas,
       estoque: stock,
     };
-    stock -= vendas; // diminui o estoque após a semana
+    stock -= vendas;
     return dataPoint;
   });
 };
-// --- Fim funções chartData ---
+
+// --- Função para gráfico de status ---
+const calculateStatusSummary = (products: Product[]) => {
+  const summary = { ruptura: 0, critico: 0, estavel: 0 };
+  products.forEach((p) => {
+    if (p.alerta.includes("Ruptura")) summary.ruptura++;
+    else if (p.alerta.includes("crítico")) summary.critico++;
+    else if (p.alerta.includes("estável")) summary.estavel++;
+  });
+  return [
+    { name: "Ruptura", value: summary.ruptura },
+    { name: "Crítico", value: summary.critico },
+    { name: "Estável", value: summary.estavel },
+  ];
+};
+
+const COLORS = ["#f87171", "#facc15", "#4ade80"]; // vermelho, amarelo, verde
 
 const Index = () => {
-  const [selectedWeek, setSelectedWeek] = useState<"semana1" | "semana2" | "semana3" | "semana4">("semana1");
-  const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [selectedProductId, setSelectedProductId] = useState<string>(produtosMock[0].id.toString());
 
-  // Converter string para number apenas quando for buscar o produto
   const selectedProduct = produtosMock.find(p => p.id === Number(selectedProductId))!;
-
-  const filteredProducts = produtosMock.filter(product => {
-    if (statusFilter === "todos") return true;
-    if (statusFilter === "ruptura") return product.alerta.includes("Ruptura iminente");
-    if (statusFilter === "critico") return product.alerta.includes("crítico");
-    if (statusFilter === "estavel") return product.alerta.includes("estável");
-    return true;
-  });
-
   const chartData = calculateChartDataByProduct(selectedProduct);
+  const estoqueTotalData = calculateChartData(produtosMock);
+  const statusSummary = calculateStatusSummary(produtosMock);
 
   return (
     <div className="min-h-screen bg-background">
@@ -437,7 +429,6 @@ const Index = () => {
               </p>
             </div>
             <div className="flex items-center gap-4 w-full sm:w-auto">
-              {/* Select de produto */}
               <Select value={selectedProductId} onValueChange={setSelectedProductId}>
                 <SelectTrigger className="w-full sm:w-[220px] bg-background">
                   <SelectValue placeholder="Selecione o produto" />
@@ -463,13 +454,50 @@ const Index = () => {
           <KPICard title="Custo de Ruptura" value="R$ 12.4k" subtitle="Estimativa mensal" icon={DollarSign} variant="warning" />
         </div>
 
-        {/* Chart */}
-        <div className="mb-6 sm:mb-8">
+        {/* Gráfico do produto selecionado */}
+        <div className="mb-8">
           <SalesChart data={chartData} />
         </div>
 
-        {/* Products Table */}
+        {/* Novo gráfico 1: Estoque total agregado por semana */}
+        <div className="mb-8 bg-card rounded-2xl p-4 shadow">
+          <h2 className="text-lg font-semibold mb-4">Estoque Total x Vendas (Todas as categorias)</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={estoqueTotalData}>
+              <XAxis dataKey="semana" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="estoque" fill="#60a5fa" name="Estoque Total" />
+              <Bar dataKey="vendas" fill="#f97316" name="Vendas Simuladas" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
+        {/* Novo gráfico 2: Distribuição de status */}
+        <div className="bg-card rounded-2xl p-4 shadow">
+          <h2 className="text-lg font-semibold mb-4">Distribuição de Status de Estoque</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={statusSummary}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, value }) => `${name} (${value})`}
+              >
+                {statusSummary.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Legend />
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </main>
     </div>
   );
