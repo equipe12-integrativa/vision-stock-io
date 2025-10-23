@@ -11,6 +11,7 @@ import {
   Package,
   PieChart,
   Settings2,
+  Clipboard,
   SquareTerminal,
 } from "lucide-react"
 
@@ -68,6 +69,12 @@ const data = {
       title: "Alertas",
       url: "/alertas",
       icon: Bell,
+     
+    },
+    {
+      title: "Contagem de estoque",
+      url: "/alertas",
+      icon: Clipboard,
      
     },
     {
