@@ -30,9 +30,9 @@ import path from "path"
 
 const data = {
   user: {
-    name: "EVM",
-    email: "valdir@evm.com",
-    avatar: "src/assets/images/evm.png",
+    name: "ARMAZYN",
+    email: "valdir@armazyn.com",
+    avatar: "src/assets/images/armazyn.png",
   },
   teams: [
     {
