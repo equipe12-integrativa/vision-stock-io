@@ -12,7 +12,7 @@ import { AlertTriangle, AlertCircle, CheckCircle } from "lucide-react";
 export interface Product {
   id: number;
   nome: string;
-  estoqueAtual: number;
+  estoqueatual: number;
   previsao: {
     semana1: number;
     semana2: number;
@@ -79,7 +79,7 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                   {product.unidade}
                 </TableCell>
                 <TableCell className="text-center font-semibold">
-                  {product.estoqueAtual}
+                  {product.estoqueatual}
                 </TableCell>
                 <TableCell className="text-center font-semibold">
                   R$ 3,00

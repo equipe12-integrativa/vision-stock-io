@@ -73,7 +73,7 @@ const data = {
     },
     {
       title: "Contagem de estoque",
-      url: "/alertas",
+      url: "/contagem",
       icon: Clipboard,
      
     },

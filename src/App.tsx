@@ -10,6 +10,7 @@ import { ThemeProvider } from "./components/them-provider";
 import Produtos from "./pages/alertas";
 import Alertas from "./pages/alertas";
 import Produtoss from "./pages/produtos";
+import Contagem from "./pages/contagem";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/alertas" element={<Alertas />} />
               <Route path="/produtos" element={<Produtoss />} />
+              <Route path="/contagem" element={<Contagem />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>w
