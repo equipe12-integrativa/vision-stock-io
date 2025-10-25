@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
+import { BrowserMultiFormatReader } from "@zxing/browser";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,7 @@ import { Label } from "@/components/ui/label";
 
 export default function Contagem() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [streaming, setStreaming] = useState(false);
+  const [codigoLido, setCodigoLido] = useState<string>("");
 
   // Mock de produto (poderia vir da API)
   const [produto, setProduto] = useState({
@@ -28,42 +29,51 @@ export default function Contagem() {
   // Controle do alerta (Dialog)
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Tipagem local para o controle do scanner
+  interface VideoDecodeControlLocal {
+    stop(): void;
+  }
+
   useEffect(() => {
-    const startCamera = async () => {
+    const codeReader = new BrowserMultiFormatReader();
+    let controls: VideoDecodeControlLocal | null = null;
+
+    const startScanner = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-          setStreaming(true);
-        }
+        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+        const selectedDeviceId = devices[0]?.deviceId;
+        if (!selectedDeviceId) return;
+
+        controls = await codeReader.decodeFromVideoDevice(
+          selectedDeviceId,
+          videoRef.current!,
+          (result, err) => {
+            if (result) {
+              const text = result.getText();
+              setCodigoLido(text);
+              setOpenDialog(true);
+            }
+            if (err && err.name !== "NotFoundException") {
+              console.error("Erro ao ler código:", err);
+            }
+          }
+        );
       } catch (err) {
         console.error("Erro ao acessar a câmera:", err);
       }
     };
 
-    startCamera();
+    startScanner();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        (videoRef.current.srcObject as MediaStream)
-          .getTracks()
-          .forEach((track) => track.stop());
-      }
+      controls?.stop(); // encerra o scanner corretamente
     };
   }, []);
-
-  const handleEnviar = () => {
-    // Abre o alerta de confirmação
-    setOpenDialog(true);
-  };
 
   const confirmarAtualizacao = () => {
     setOpenDialog(false);
     alert(
-      `Produto atualizado com sucesso!\n\nProduto: ${produto.nome}\nEstoque Atual: ${produto.estoque}\nQuantidade Atualizada: ${quantidade}`
+      `Produto atualizado com sucesso!\n\nCódigo lido: ${codigoLido}\nProduto: ${produto.nome}\nEstoque Atual: ${produto.estoque}\nQuantidade Atualizada: ${quantidade}`
     );
     // Aqui você pode chamar sua API: updateProduto(produto.id, quantidade)
   };
@@ -79,12 +89,19 @@ export default function Contagem() {
           <video
             ref={videoRef}
             className="w-full h-60 rounded-lg border border-gray-300 object-cover"
+            muted
+          />
+          {codigoLido && (
+            <p className="text-green-600 font-semibold">
+              Código detectado: {codigoLido}
+            </p>
+          )}
+          <Button
+            onClick={() => setCodigoLido("")}
+            variant="outline"
+            className="w-full"
           >
-            Câmera não suportada
-          </video>
-
-          <Button onClick={handleEnviar} className="w-full">
-            Enviar
+            Limpar Código
           </Button>
         </CardContent>
       </Card>
@@ -98,7 +115,10 @@ export default function Contagem() {
 
           <div className="space-y-3 text-gray-700">
             <p>
-              Deseja atualizar o produto <strong>{produto.nome}</strong>
+              Código lido: <strong>{codigoLido}</strong>
+            </p>
+            <p>
+              Deseja atualizar o produto <strong>{produto.nome}</strong>?
             </p>
             <p>
               Estoque atual: <strong>{produto.estoque}</strong>
