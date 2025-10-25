@@ -1,53 +1,73 @@
 import { useEffect, useState } from "react";
-import { Package, Search, Filter, X } from "lucide-react";
+import { Package, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { ProductTable, Product } from "@/components/ProductTable";
 import api from "@/api/api";
+import { useSocket } from "@/api/socketContext";
+import { StockAlert } from "@/components/StockAlert";
 
 const Produtoss = () => {
+  const socket = useSocket();
+
+  const [alertData, setAlertData] = useState<{
+    id: number;
+    nome: string;
+    estoqueAtual: number;
+  } | null>(null);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [unidadeFilter, setUnidadeFilter] = useState("todas");
   const [sortBy, setSortBy] = useState("estoque-desc");
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedWeek, setSelectedWeek] = useState<"semana1" | "semana2" | "semana3" | "semana4">("semana1");
 
-  // --- Carregar produtos da API ---
+  // função reutilizável para buscar produtos
+  const fetchProducts = async () => {
+    try {
+      const response = await api.get("/produtos");
+      const data = response.data.data;
+
+      const productsParsed: Product[] = data.map((item: any) => ({
+        id: item.id,
+        nome: item.nome,
+        unidade: item.unidade,
+        estoqueatual: Number(item.estoqueatual),
+        previsao: {
+          semana1: Number(item.semana1 ?? item.previsao?.semana1),
+          semana2: Number(item.semana2 ?? item.previsao?.semana2),
+          semana3: Number(item.semana3 ?? item.previsao?.semana3),
+          semana4: Number(item.semana4 ?? item.previsao?.semana4),
+        },
+        estoqueZerandoEm: item.estoqueZerandoEm,
+        alerta: item.alerta,
+      }));
+
+      setProducts(productsParsed);
+    } catch (err) {
+      console.error("Erro ao consumir API:", err);
+    }
+  };
+
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await api.get("/produtos");
-        const data = response.data.data;
-
-        const productsParsed: Product[] = data.map((item: any) => ({
-          id: item.id,
-          nome: item.nome,
-          unidade: item.unidade,
-          estoqueatual: Number(item.estoqueatual),
-          previsao: {
-            semana1: Number(item.semana1 ?? item.previsao?.semana1),
-            semana2: Number(item.semana2 ?? item.previsao?.semana2),
-            semana3: Number(item.semana3 ?? item.previsao?.semana3),
-            semana4: Number(item.semana4 ?? item.previsao?.semana4),
-          },
-          estoqueZerandoEm: item.estoqueZerandoEm,
-          alerta: item.alerta,
-        }));
-
-        setProducts(productsParsed);
-      } catch (err) {
-        console.error("Erro ao consumir API:", err);
-      }
-    };
-
     fetchProducts();
   }, []);
 
-  // --- Filtragem e ordenação ---
+  useEffect(() => {
+    socket.on("Produto identificado", (data: any) => {
+      setAlertData({
+        id: data.id,
+        nome: data.nome,
+        estoqueAtual: data.estoqueatual,
+      });
+    });
+
+    return () => {
+      socket.off("Produto identificado");
+    };
+  }, [socket]);
+
   const filteredProducts = products
     .filter((product) => {
       const matchesSearch =
@@ -81,7 +101,16 @@ const Produtoss = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
+      {alertData && (
+        <StockAlert
+          id={alertData.id}
+          nome={alertData.nome}
+          estoqueAtual={alertData.estoqueAtual}
+          onClose={() => setAlertData(null)}
+          onUpdate={fetchProducts} // chama fetch para atualizar tabela
+        />
+      )}
+
       <header className="border-b shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 py-6 flex items-center gap-3">
           <Package className="h-8 w-8 text-blue-600" />
@@ -92,7 +121,6 @@ const Produtoss = () => {
         </div>
       </header>
 
-      {/* Filtros */}
       <div className="border-b top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -146,7 +174,6 @@ const Produtoss = () => {
         </div>
       </div>
 
-      {/* Tabela */}
       <div className="container mx-auto px-4 sm:px-6 py-6">
         <ProductTable products={filteredProducts} selectedWeek={selectedWeek} />
       </div>
