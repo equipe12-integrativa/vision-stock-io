@@ -1,79 +1,97 @@
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
-import { BrowserMultiFormatReader } from "@zxing/browser";
+import { BrowserMultiFormatReader, BarcodeFormat } from "@zxing/browser";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import api from "@/api/api";
 
 export default function Contagem() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [codigoLido, setCodigoLido] = useState<string>("");
+  const [useBackCamera, setUseBackCamera] = useState(true);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const controlsRef = useRef<any>(null);
 
-  interface VideoDecodeControlLocal {
-    stop(): void;
-  }
+  const startScanner = async () => {
+    try {
+      // Lista todas as câmeras disponíveis
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
 
-  useEffect(() => {
-    const codeReader = new BrowserMultiFormatReader();
-    let controls: VideoDecodeControlLocal | null = null;
+      // Escolhe dispositivo baseado em label ou fallback
+      let device = devices.find(d =>
+        useBackCamera ? /back|rear/gi.test(d.label) : /front|user/gi.test(d.label)
+      );
+      device = device || devices[0];
+      setSelectedDeviceId(device.deviceId);
 
-    const startScanner = async () => {
-      try {
-        // Solicita permissão de câmera
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (!videoRef.current) return;
+      // Para evitar câmeras conflitantes
+      if (controlsRef.current) {
+        controlsRef.current.stop();
+        if (videoRef.current?.srcObject) {
+          (videoRef.current.srcObject as MediaStream)
+            .getTracks()
+            .forEach(track => track.stop());
+        }
+      }
+
+      const codeReader = new BrowserMultiFormatReader(); // sem "formats"
+
+      const constraints: MediaStreamConstraints = {
+        video: device
+          ? { deviceId: { exact: device.deviceId } }
+          : { facingMode: useBackCamera ? "environment" : "user" },
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
+      }
 
-        // Lista dispositivos de vídeo (câmeras)
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      controlsRef.current = await codeReader.decodeFromVideoDevice(
+        device.deviceId,
+        videoRef.current!,
+        async (result, err) => {
+          if (result) {
+            const text = result.getText();
+            const format = result.getBarcodeFormat();
 
-        // Tenta pegar a câmera traseira
-        const backCamera = devices.find(device =>
-          /back|rear/gi.test(device.label)
-        );
-        const selectedDeviceId = backCamera?.deviceId || devices[0]?.deviceId;
-        if (!selectedDeviceId) return;
-
-        // Inicia a leitura de código de barras
-        controls = await codeReader.decodeFromVideoDevice(
-          selectedDeviceId,
-          videoRef.current!,
-          async (result, err) => {
-            if (result) {
-              setCodigoLido(result.getText());
-
-              // Exemplo de envio para API via PUT
+            // Filtra apenas CODE_128 ou EAN_13
+            if (format === BarcodeFormat.CODE_128 || format === BarcodeFormat.EAN_13) {
+              setCodigoLido(text);
               try {
-                await axios.put("/sua-api", {
-                  codigo: result.getText()
-                });
+                await api.put("/contagem", { codigoBarras: text });
               } catch (apiErr) {
                 console.error("Erro ao enviar código para API:", apiErr);
               }
             }
-            if (err && err.name !== "NotFoundException") {
-              console.error("Erro ao ler código:", err);
-            }
           }
-        );
-      } catch (err) {
-        console.error("Erro ao acessar a câmera:", err);
-        alert("Não foi possível acessar a câmera. Verifique as permissões.");
-      }
-    };
+          if (err && err.name !== "NotFoundException") {
+            console.error("Erro ao ler código:", err);
+          }
+        }
+      );
+    } catch (err) {
+      console.error("Erro ao acessar a câmera:", err);
+      alert("Não foi possível acessar a câmera. Verifique as permissões.");
+    }
+  };
 
+  useEffect(() => {
     startScanner();
 
     return () => {
-      controls?.stop();
+      if (controlsRef.current) {
+        controlsRef.current.stop();
+      }
       if (videoRef.current?.srcObject) {
         (videoRef.current.srcObject as MediaStream)
           .getTracks()
-          .forEach((track) => track.stop());
+          .forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [useBackCamera]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
@@ -93,13 +111,22 @@ export default function Contagem() {
               Código detectado: {codigoLido}
             </p>
           )}
-          <Button
-            onClick={() => setCodigoLido("")}
-            variant="outline"
-            className="w-full"
-          >
-            Limpar Código
-          </Button>
+          <div className="flex gap-2 w-full">
+            <Button
+              onClick={() => setCodigoLido("")}
+              variant="outline"
+              className="flex-1"
+            >
+              Limpar Código
+            </Button>
+            <Button
+              onClick={() => setUseBackCamera(prev => !prev)}
+              variant="secondary"
+              className="flex-1"
+            >
+              {useBackCamera ? "Usar Frontal" : "Usar Traseira"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
