@@ -1,35 +1,14 @@
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader } from "@zxing/browser";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default function Contagem() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [codigoLido, setCodigoLido] = useState<string>("");
 
-  // Mock de produto (poderia vir da API)
-  const [produto, setProduto] = useState({
-    nome: "Produto 1",
-    estoque: 120,
-  });
-
-  // Quantidade padrão começa em 1
-  const [quantidade, setQuantidade] = useState<number>(1);
-
-  // Controle do alerta (Dialog)
-  const [openDialog, setOpenDialog] = useState(false);
-
-  // Tipagem local para o controle do scanner
   interface VideoDecodeControlLocal {
     stop(): void;
   }
@@ -40,18 +19,38 @@ export default function Contagem() {
 
     const startScanner = async () => {
       try {
+        // Solicita permissão de câmera
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (!videoRef.current) return;
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+
+        // Lista dispositivos de vídeo (câmeras)
         const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-        const selectedDeviceId = devices[0]?.deviceId;
+
+        // Tenta pegar a câmera traseira
+        const backCamera = devices.find(device =>
+          /back|rear/gi.test(device.label)
+        );
+        const selectedDeviceId = backCamera?.deviceId || devices[0]?.deviceId;
         if (!selectedDeviceId) return;
 
+        // Inicia a leitura de código de barras
         controls = await codeReader.decodeFromVideoDevice(
           selectedDeviceId,
           videoRef.current!,
-          (result, err) => {
+          async (result, err) => {
             if (result) {
-              const text = result.getText();
-              setCodigoLido(text);
-              setOpenDialog(true);
+              setCodigoLido(result.getText());
+
+              // Exemplo de envio para API via PUT
+              try {
+                await axios.put("/sua-api", {
+                  codigo: result.getText()
+                });
+              } catch (apiErr) {
+                console.error("Erro ao enviar código para API:", apiErr);
+              }
             }
             if (err && err.name !== "NotFoundException") {
               console.error("Erro ao ler código:", err);
@@ -60,23 +59,21 @@ export default function Contagem() {
         );
       } catch (err) {
         console.error("Erro ao acessar a câmera:", err);
+        alert("Não foi possível acessar a câmera. Verifique as permissões.");
       }
     };
 
     startScanner();
 
     return () => {
-      controls?.stop(); // encerra o scanner corretamente
+      controls?.stop();
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream)
+          .getTracks()
+          .forEach((track) => track.stop());
+      }
     };
   }, []);
-
-  const confirmarAtualizacao = () => {
-    setOpenDialog(false);
-    alert(
-      `Produto atualizado com sucesso!\n\nCódigo lido: ${codigoLido}\nProduto: ${produto.nome}\nEstoque Atual: ${produto.estoque}\nQuantidade Atualizada: ${quantidade}`
-    );
-    // Aqui você pode chamar sua API: updateProduto(produto.id, quantidade)
-  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
@@ -105,45 +102,6 @@ export default function Contagem() {
           </Button>
         </CardContent>
       </Card>
-
-      {/* ALERTA DE CONFIRMAÇÃO */}
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Atualização</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-3 text-gray-700">
-            <p>
-              Código lido: <strong>{codigoLido}</strong>
-            </p>
-            <p>
-              Deseja atualizar o produto <strong>{produto.nome}</strong>?
-            </p>
-            <p>
-              Estoque atual: <strong>{produto.estoque}</strong>
-            </p>
-
-            <div className="flex flex-col gap-1">
-              <Label htmlFor="quantidade">Quantidade a atualizar</Label>
-              <Input
-                id="quantidade"
-                type="number"
-                min={1}
-                value={quantidade}
-                onChange={(e) => setQuantidade(Number(e.target.value))}
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={confirmarAtualizacao}>OK</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
