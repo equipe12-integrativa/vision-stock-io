@@ -61,7 +61,7 @@ export default function Contagem() {
             if (format === BarcodeFormat.CODE_128 || format === BarcodeFormat.EAN_13) {
               setCodigoLido(text);
               try {
-                await api.put("/contagem", { codigoBarras: codigoLido });
+                await api.put("/contagem", { codigoBarras: text});
               } catch (apiErr) {
                 console.error("Erro ao enviar código para API:", apiErr);
               }
