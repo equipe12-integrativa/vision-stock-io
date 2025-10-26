@@ -8,7 +8,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const socketIo = io("http://localhost:2002");
+    const socketIo = io("https://backendarmazyn.azurewebsites.net");
     setSocket(socketIo);
 
     return () => {

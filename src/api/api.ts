@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const api = axios.create({
-    baseURL: 'http://localhost:2002'
+    baseURL: 'https://backendarmazyn.azurewebsites.net'
 });
 
 export default api;
