@@ -20,6 +20,8 @@ export interface Product {
   unidade: string;
   estoqueZerandoEm: string;
   alerta: string;
+  dataCompra: any
+  preco:any
 }
 
 interface ProductTableProps {
@@ -80,10 +82,10 @@ export const ProductTable = ({ products, selectedWeek }: ProductTableProps) => {
                     {product.estoqueatual}
                   </TableCell>
                   <TableCell className="text-center font-semibold">
-                    R$ 3,00
+                    R$ {product.preco}
                   </TableCell>
                   <TableCell className="text-center font-semibold">
-                    30/03/2024
+                    {product.dataCompra}
                   </TableCell>
                   {/* <TableCell className={`text-center transition-colors ${selectedWeek === "semana1" ? "bg-primary/10" : ""}`}>
                   <span className={selectedWeek === "semana1" ? "font-bold text-primary" : ""}>

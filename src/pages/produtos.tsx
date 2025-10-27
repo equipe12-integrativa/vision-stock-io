@@ -7,6 +7,28 @@ import api from "@/api/api";
 import { useSocket } from "@/api/socketContext";
 import { StockAlert } from "@/components/StockAlert";
 
+// ***************************************************************
+// NOTA IMPORTANTE:
+// Você deve garantir que a interface 'Product' inclua as propriedades 'dataCompra' e 'preco'.
+// Exemplo:
+// export interface Product {
+//   id: number;
+//   nome: string;
+//   unidade: string;
+//   estoqueatual: number;
+//   previsao: {
+//     semana1: number;
+//     semana2: number;
+//     semana3: number;
+//     semana4: number;
+//   };
+//   estoquezerandoem: string | null;
+//   alerta: string;
+//   dataCompra: string | null;
+//   preco: number; // <-- NOVO CAMPO
+// }
+// ***************************************************************
+
 const Produtoss = () => {
   const socket = useSocket();
 
@@ -29,20 +51,43 @@ const Produtoss = () => {
       const response = await api.get("/produtos");
       const data = response.data.data;
 
-      const productsParsed: Product[] = data.map((item: any) => ({
-        id: item.id,
-        nome: item.nome,
-        unidade: item.unidade,
-        estoqueatual: Number(item.estoqueatual),
-        previsao: {
-          semana1: Number(item.semana1 ?? item.previsao?.semana1),
-          semana2: Number(item.semana2 ?? item.previsao?.semana2),
-          semana3: Number(item.semana3 ?? item.previsao?.semana3),
-          semana4: Number(item.semana4 ?? item.previsao?.semana4),
-        },
-        estoqueZerandoEm: item.estoqueZerandoEm,
-        alerta: item.alerta,
-      }));
+      const productsParsed: Product[] = data.map((item: any) => {
+        // --- LÓGICA PARA CALCULAR A dataCompra ---
+        const estoqueZerandoDate = item.estoquezerandoem 
+          ? new Date(item.estoquezerandoem) 
+          : null; 
+
+        let dataCompra: string | null = null;
+        if (estoqueZerandoDate && !isNaN(estoqueZerandoDate.getTime())) {
+          estoqueZerandoDate.setDate(estoqueZerandoDate.getDate() - 20);
+          dataCompra = estoqueZerandoDate.toLocaleDateString('pt-BR');
+        }
+
+        // --- LÓGICA PARA GERAR PREÇO ---
+        let preco = 0;
+        const nomeUpper = item.nome.toUpperCase();
+        if (nomeUpper.includes("TAMPA")) preco = Number((Math.random() * 15 + 5).toFixed(2));
+        else if (nomeUpper.includes("COMBUSTÍVEL")) preco = Number((Math.random() * 80 + 20).toFixed(2));
+        else if (nomeUpper.includes("UN")) preco = Number((Math.random() * 9 + 1).toFixed(2));
+        else preco = Number((Math.random() * 40 + 10).toFixed(2));
+
+        return {
+          id: item.id,
+          nome: item.nome,
+          unidade: item.unidade,
+          estoqueatual: Number(item.estoqueatual),
+          previsao: {
+            semana1: Number(item.semana1 ?? item.previsao?.semana1),
+            semana2: Number(item.semana2 ?? item.previsao?.semana2),
+            semana3: Number(item.semana3 ?? item.previsao?.semana3),
+            semana4: Number(item.semana4 ?? item.previsao?.semana4),
+          },
+          estoquezerandoem: item.estoquezerandoem,
+          alerta: item.alerta,
+          dataCompra: dataCompra,
+          preco: preco,
+        };
+      });
 
       setProducts(productsParsed);
     } catch (err) {
@@ -107,7 +152,7 @@ const Produtoss = () => {
           nome={alertData.nome}
           estoqueAtual={alertData.estoqueAtual}
           onClose={() => setAlertData(null)}
-          onUpdate={fetchProducts} // chama fetch para atualizar tabela
+          onUpdate={fetchProducts}
         />
       )}
 

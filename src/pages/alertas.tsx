@@ -19,7 +19,7 @@ interface Product {
   unidade: string;
   estoqueatual: number;
   previsao: { semana1: number; semana2: number; semana3: number; semana4: number };
-  estoqueZerandoEm: string;
+  estoquezerandoem: string;
   alerta: string;
 }
 
@@ -52,7 +52,7 @@ const Alertas = () => {
           semana3: Number(item.semana3 ?? item.previsao?.semana3),
           semana4: Number(item.semana4 ?? item.previsao?.semana4),
         },
-        estoqueZerandoEm: item.estoqueZerandoEm,
+        estoquezerandoem: item.estoquezerandoem,
         alerta: item.alerta,
       }));
 
@@ -232,7 +232,7 @@ const Alertas = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-foreground/70">Zerando em:</span>
                   <span className="text-xs font-medium text-foreground">
-                    {product.estoqueZerandoEm ? new Date(product.estoqueZerandoEm).toLocaleDateString("pt-BR") : "-"}
+                    {product.estoquezerandoem ? new Date(product.estoquezerandoem).toLocaleDateString("pt-BR") : "-"}
                   </span>
                 </div>
 
